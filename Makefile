@@ -1,0 +1,13 @@
+compile:
+	go build -o userapp.exe ./cmd/userapp.go
+
+format:
+	go fmt ./...
+	go vet ./...
+	staticcheck ./...
+	gosec ./...
+
+run:
+	./userapp.exe
+
+build: compile run
