@@ -3,6 +3,7 @@ package logic
 import "errors"
 
 var ErrUserNotFound = errors.New("failed to find user")
+var ErrUserCreationFailed = errors.New("failed to create new user")
 
 type User struct {
 	ID              int
@@ -15,4 +16,5 @@ type User struct {
 
 type UserService interface {
 	GetUserByID(userId int) (*User, error)
+	Create(*User) (int, error)
 }

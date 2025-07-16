@@ -9,6 +9,7 @@ import (
 func NewHandler(controller *UserController) http.Handler {
 	router := chi.NewRouter()
 	router.Get("/users", controller.GetUserByID)
+	router.Post("/users", controller.CreateUser)
 
 	return router
 }
