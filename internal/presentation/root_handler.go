@@ -1,10 +1,14 @@
 package presentation
 
-import "net/http"
+import (
+	"net/http"
 
-func NewHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World"))
-		w.WriteHeader(http.StatusOK)
-	})
+	"github.com/go-chi/chi/v5"
+)
+
+func NewHandler(controller *UserController) http.Handler {
+	router := chi.NewRouter()
+	router.Get("/users", controller.GetUserByID)
+
+	return router
 }
