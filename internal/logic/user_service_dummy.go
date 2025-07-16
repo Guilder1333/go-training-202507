@@ -31,3 +31,11 @@ func (s UserServiceDummy) Create(user *User) (int, error) {
 
 	return rand.Intn(1000) + 1, nil
 }
+
+func (s UserServiceDummy) Delete(userId int) error {
+	if userId == 404 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}

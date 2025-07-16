@@ -7,6 +7,7 @@ import (
 
 var ErrInvalidGetRequest = errors.New("get user request is invalid")
 var ErrInvalidCreateRequest = errors.New("create user request is invalid")
+var ErrInvalidDeleteRequest = errors.New("detele user request is invalid")
 
 type UserGetRequest struct {
 	ID int
@@ -20,7 +21,12 @@ type UserCreateRequest struct {
 	IsPhoneVerified bool
 }
 
+type UserDeleteRequest struct {
+	ID int
+}
+
 type UserValidator interface {
 	ValidateGetUserId(r *http.Request) (UserGetRequest, error)
 	ValidateCreateUser(r *http.Request) (*UserCreateRequest, error)
+	ValidateDeleteUserId(r *http.Request) (UserDeleteRequest, error)
 }

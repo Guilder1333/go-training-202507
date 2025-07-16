@@ -10,6 +10,7 @@ func NewHandler(controller *UserController) http.Handler {
 	router := chi.NewRouter()
 	router.Get("/users", controller.GetUserByID)
 	router.Post("/users", controller.CreateUser)
+	router.Delete("/users", controller.DeleteUserById)
 
 	return router
 }

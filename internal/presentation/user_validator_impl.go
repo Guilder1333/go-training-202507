@@ -65,10 +65,6 @@ func (v UserValidatorImpl) ValidateCreateUser(r *http.Request) (*UserCreateReque
 	}, nil
 }
 
-// << --- see left panel
-
-// ---> see right panel
-
 func validateJSON(err error, reader io.ReadCloser, result any) error {
 	if err != nil {
 		return err
@@ -110,4 +106,19 @@ func intSize(err error, value *int, min int, max int, fieldName string) error {
 		return nil
 	}
 	return fmt.Errorf("field '%s' integer value does not fit into size constraints [%d, %d]", fieldName, min, max)
+}
+
+func (v UserValidatorImpl) ValidateDeleteUserId(r *http.Request) (UserDeleteRequest, error) {
+	if !r.URL.Query().Has("id") {
+		return UserDeleteRequest{}, ErrInvalidDeleteRequest
+	}
+
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		return UserDeleteRequest{},
+			fmt.Errorf("%w: failed to parse user id: %w", ErrInvalidDeleteRequest, err)
+	}
+	return UserDeleteRequest{
+		ID: id,
+	}, nil
 }

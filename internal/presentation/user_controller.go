@@ -149,3 +149,37 @@ func (u *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(responseStr)
 	w.WriteHeader(http.StatusCreated)
 }
+
+func (u *UserController) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+	// get ID from request validate the id
+	requestInfo, err := u.getRequestValidator.ValidateDeleteUserId(r)
+	if errors.Is(err, ErrInvalidDeleteRequest) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid request"))
+		log.Warn().Err(err).Msg("Invalid user delete request")
+		return
+	}
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("something went wrong"))
+		log.Error().Err(err).Msg("Unexpected error while handling user delete request")
+		return
+	}
+
+	// pass id to business logic (delete user)
+	err = u.userService.Delete(requestInfo.ID)
+	if errors.Is(err, logic.ErrUserNotFound) {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("user not found"))
+		log.Warn().Err(err).Msg("User not found for delete request")
+		return
+	}
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("something went wrong"))
+		log.Error().Err(err).Msg("Unexpected error while handling user delete request")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

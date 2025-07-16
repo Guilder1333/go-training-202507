@@ -17,4 +17,5 @@ type User struct {
 type UserService interface {
 	GetUserByID(userId int) (*User, error)
 	Create(*User) (int, error)
+	Delete(userId int) error
 }
