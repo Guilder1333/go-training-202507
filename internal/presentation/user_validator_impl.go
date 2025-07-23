@@ -2,7 +2,9 @@ package presentation
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"hands_on_go/internal/statuserr"
 	"io"
 	"net/http"
 	"strconv"
@@ -17,13 +19,16 @@ func NewUserValidatorImpl() UserValidatorImpl {
 
 func (v UserValidatorImpl) ValidateGetUserId(r *http.Request) (UserGetRequest, error) {
 	if !r.URL.Query().Has("id") {
-		return UserGetRequest{}, ErrInvalidGetRequest
+		err := errors.New("request query has no id")
+		err = statuserr.SetKind(err, statuserr.KindInvalidRequest)
+		return UserGetRequest{}, err
 	}
 
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
-		return UserGetRequest{},
-			fmt.Errorf("%w: failed to parse user id: %w", ErrInvalidGetRequest, err)
+		err = fmt.Errorf("failed to parse user id: %w", err)
+		err = statuserr.SetKind(err, statuserr.KindInvalidRequest)
+		return UserGetRequest{}, err
 	}
 	return UserGetRequest{
 		ID: id,
@@ -53,7 +58,9 @@ func (v UserValidatorImpl) ValidateCreateUser(r *http.Request) (*UserCreateReque
 	err = stringLength(err, requestBody.PhoneNumber, 0, 25, "PhoneNumber")
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidCreateRequest, err)
+		err = fmt.Errorf("invalid create request body: %w", err)
+		err = statuserr.SetKind(err, statuserr.KindInvalidRequest)
+		return nil, err
 	}
 
 	return &UserCreateRequest{
@@ -81,7 +88,9 @@ func required[T any](err error, value *T, fieldName string) error {
 		return err
 	}
 	if value == nil {
-		return fmt.Errorf("required field '%s' is null", fieldName)
+		err = fmt.Errorf("required field '%s' is null", fieldName)
+		err = statuserr.SetMessage(err, fmt.Sprintf("required field '%s' is null", fieldName))
+		return err
 	}
 	return nil
 }
@@ -94,7 +103,9 @@ func stringLength(err error, str *string, min int, max int, fieldName string) er
 	if v >= min && v <= max {
 		return nil
 	}
-	return fmt.Errorf("field '%s' string length does not fit into size constraints [%d, %d]", fieldName, min, max)
+	err = fmt.Errorf("field '%s' string length does not fit into size constraints [%d, %d]", fieldName, min, max)
+	err = statuserr.SetMessage(err, fmt.Sprintf("field '%s' string length does not fit into size constraints [%d, %d]", fieldName, min, max))
+	return err
 }
 
 func intSize(err error, value *int, min int, max int, fieldName string) error {
@@ -105,18 +116,24 @@ func intSize(err error, value *int, min int, max int, fieldName string) error {
 	if v >= min && v <= max {
 		return nil
 	}
-	return fmt.Errorf("field '%s' integer value does not fit into size constraints [%d, %d]", fieldName, min, max)
+	err = fmt.Errorf("field '%s' integer value does not fit into size constraints [%d, %d]", fieldName, min, max)
+	err = statuserr.SetMessage(err, fmt.Sprintf("field '%s' integer value does not fit into size constraints [%d, %d]", fieldName, min, max))
+	return err
 }
 
 func (v UserValidatorImpl) ValidateDeleteUserId(r *http.Request) (UserDeleteRequest, error) {
 	if !r.URL.Query().Has("id") {
-		return UserDeleteRequest{}, ErrInvalidDeleteRequest
+		err := errors.New("delete request query doesn't contain id")
+		err = statuserr.SetKind(err, statuserr.KindInvalidRequest)
+		return UserDeleteRequest{}, err
 	}
 
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
-		return UserDeleteRequest{},
-			fmt.Errorf("%w: failed to parse user id: %w", ErrInvalidDeleteRequest, err)
+		err = fmt.Errorf("failed to parse user id in delete request: %w", err)
+		err = statuserr.SetKind(err, statuserr.KindInvalidRequest)
+		return UserDeleteRequest{}, err
+
 	}
 	return UserDeleteRequest{
 		ID: id,

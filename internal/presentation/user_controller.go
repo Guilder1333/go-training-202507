@@ -3,10 +3,9 @@ package presentation
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"hands_on_go/internal/logic"
 	"net/http"
-
-	"github.com/rs/zerolog/log"
 )
 
 type UserController struct {
@@ -41,35 +40,17 @@ func NewUserController(getRequestValidator UserValidator, userService logic.User
 	}, nil
 }
 
-func (u *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) {
+func (u *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) error {
 	// get ID from request validate the id
 	requestInfo, err := u.getRequestValidator.ValidateGetUserId(r)
-	if errors.Is(err, ErrInvalidGetRequest) {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid request"))
-		log.Warn().Err(err).Msg("Invalid user get request")
-		return
-	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("something went wrong"))
-		log.Error().Err(err).Msg("Unexpected error while handling user get request")
-		return
+		return fmt.Errorf("user validation for get request failed: %w", err)
 	}
 
 	// pass id to business logic (get user)
 	user, err := u.userService.GetUserByID(requestInfo.ID)
-	if errors.Is(err, logic.ErrUserNotFound) {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("user not found"))
-		log.Warn().Err(err).Msg("User not found for get request")
-		return
-	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("something went wrong"))
-		log.Error().Err(err).Msg("Unexpected error while handling user get request")
-		return
+		return fmt.Errorf("get user by id failed for get request: %w", err)
 	}
 
 	// map user to json struct
@@ -85,30 +66,19 @@ func (u *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	// serialize json struct to string and send it as a response.
 	responseStr, err := json.Marshal(userResponse)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("something went wrong"))
-		log.Error().Err(err).Msg("failed to serialize response for user get request")
-		return
+		return fmt.Errorf("serializing response failed for get request: %w", err)
 	}
 
 	w.Write(responseStr)
 	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
-func (u *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (u *UserController) CreateUser(w http.ResponseWriter, r *http.Request) error {
 	// Parse and validate request body.
 	requestInfo, err := u.getRequestValidator.ValidateCreateUser(r)
-	if errors.Is(err, ErrInvalidCreateRequest) {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid request"))
-		log.Warn().Err(err).Msg("Invalid user create request")
-		return
-	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("something went wrong"))
-		log.Error().Err(err).Msg("Unexpected error while handling user create request")
-		return
+		return fmt.Errorf("failed to validate create user request: %w", err)
 	}
 	// Pass data to business logic
 	user := logic.User{
@@ -121,18 +91,10 @@ func (u *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId, err := u.userService.Create(&user)
-	if errors.Is(err, logic.ErrUserCreationFailed) {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("user creation failed"))
-		log.Warn().Err(err).Msg("Failed to create user")
-		return
-	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("something went wrong"))
-		log.Error().Err(err).Msg("Unexpected error while handling user create request")
-		return
+		return fmt.Errorf("failed to create new user: %w", err)
 	}
+
 	// Serialize response and write it.
 
 	response := createUserResponse{
@@ -140,46 +102,27 @@ func (u *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	responseStr, err := json.Marshal(response)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("something went wrong"))
-		log.Error().Err(err).Msg("failed to serialize response for user create request")
-		return
+		return fmt.Errorf("failed to serialize response for create user: %w", err)
 	}
 
 	w.Write(responseStr)
 	w.WriteHeader(http.StatusCreated)
+	return nil
 }
 
-func (u *UserController) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+func (u *UserController) DeleteUserById(w http.ResponseWriter, r *http.Request) error {
 	// get ID from request validate the id
 	requestInfo, err := u.getRequestValidator.ValidateDeleteUserId(r)
-	if errors.Is(err, ErrInvalidDeleteRequest) {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid request"))
-		log.Warn().Err(err).Msg("Invalid user delete request")
-		return
-	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("something went wrong"))
-		log.Error().Err(err).Msg("Unexpected error while handling user delete request")
-		return
+		return fmt.Errorf("failed to validate delete user request: %w", err)
 	}
 
 	// pass id to business logic (delete user)
 	err = u.userService.Delete(requestInfo.ID)
-	if errors.Is(err, logic.ErrUserNotFound) {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("user not found"))
-		log.Warn().Err(err).Msg("User not found for delete request")
-		return
-	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("something went wrong"))
-		log.Error().Err(err).Msg("Unexpected error while handling user delete request")
-		return
+		return fmt.Errorf("failed to delete user: %w", err)
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	return nil
 }

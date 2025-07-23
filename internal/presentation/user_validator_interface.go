@@ -1,13 +1,12 @@
 package presentation
 
 import (
-	"errors"
 	"net/http"
 )
 
-var ErrInvalidGetRequest = errors.New("get user request is invalid")
-var ErrInvalidCreateRequest = errors.New("create user request is invalid")
-var ErrInvalidDeleteRequest = errors.New("detele user request is invalid")
+// var ErrInvalidGetRequest = errors.New("get user request is invalid")
+// var ErrInvalidCreateRequest = errors.New("create user request is invalid")
+// var ErrInvalidDeleteRequest = errors.New("detele user request is invalid")
 
 type UserGetRequest struct {
 	ID int
