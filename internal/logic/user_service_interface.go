@@ -17,9 +17,3 @@ type UserService interface {
 	Create(*User) (int, error)
 	Delete(userId int) error
 }
-
-// TODO:
-// 1. stop using the commented errors in those two files
-// 2. Use SetKind to make new errors
-// 3. Use GetKind to get information about error
-// 4. User WithErrorResponse for all request handlers
