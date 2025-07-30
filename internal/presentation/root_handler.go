@@ -12,5 +12,7 @@ func NewHandler(controller *UserController) http.Handler {
 	router.Post("/users", WithErrorResponse(controller.CreateUser))
 	router.Delete("/users", WithErrorResponse(controller.DeleteUserById))
 
+	
+
 	return router
 }

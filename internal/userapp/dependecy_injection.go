@@ -14,11 +14,16 @@ type application struct {
 }
 
 func newApplication() (*application, error) {
+	config, err := loadConfig()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to load configuration")
+	}
+
 	mysqlConf := dal.MySQLConfig{
-		User:     "dockeruser",
-		Password: "dockerpass",
-		Address:  "localhost:3306",
-		DBName:   "hands_on_go",
+		User:     config.MySQL.User,
+		Password: config.MySQL.Password,
+		Address:  config.MySQL.Address,
+		DBName:   config.MySQL.DBName,
 	}
 
 	db, err := dal.NewMySQLDB(mysqlConf)
